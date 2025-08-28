@@ -1,0 +1,56 @@
+[project]
+name = "awesome-list-view"
+version = "0.1.0"
+description = "A TUI dashboard for viewing and managing awesome list items"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+dependencies = [
+    "textual>=0.41.0",
+    "markdown>=3.5.0",
+    "pyyaml>=6.0.0",
+]
+
+[project.scripts]
+awesome-list-view = "app.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+    "pytest-asyncio>=1.1.0",
+    "ruff>=0.12.11",
+    "tomli>=2.0.1; python_version < '3.11'",
+    "ty>=0.0.1a20",
+]
+
+[tool.ruff]
+line-length = 80
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long, handled by formatter
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v"
