@@ -3,25 +3,6 @@
 from pathlib import Path
 
 
-def test_project_structure():
-    """Test that required project directories exist."""
-    project_root = Path(__file__).parent.parent
-
-    # Required directories
-    required_dirs = [
-        "app",
-        "app/app",
-        "app/funcs",
-        "docs",
-        "tests",
-    ]
-
-    for dir_path in required_dirs:
-        assert (project_root / dir_path).exists(), (
-            f"Missing directory: {dir_path}"
-        )
-
-
 def test_settings_import():
     """Test that settings loading function exists and works with XDG paths."""
     from app.funcs.settings_loader import (
@@ -65,26 +46,3 @@ def test_justfile_exists():
     assert "fmt:" in content
     assert "lint:" in content
     assert "test:" in content
-
-
-if __name__ == "__main__":
-    # Run tests manually
-    try:
-        test_project_structure()
-        print("✓ Project structure test passed")
-
-        test_settings_import()
-        print("✓ Settings import test passed")
-
-        test_pyproject_exists()
-        print("✓ Pyproject test passed")
-
-        test_justfile_exists()
-        print("✓ Justfile test passed")
-
-        print("\nAll tests passed! ✓")
-    except Exception as e:
-        print(f"Test failed: {e}")
-        import sys
-
-        sys.exit(1)

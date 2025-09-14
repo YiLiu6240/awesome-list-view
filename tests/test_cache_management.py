@@ -1,16 +1,18 @@
 """Tests for the unified cache management functionality."""
 
-import unittest
 from unittest.mock import Mock, patch
+
+import pytest
 
 from app.app.cache_management import CacheManagementModal
 from app.cli import AwesomeListApp
 
 
-class TestCacheManagementModal(unittest.TestCase):
+class TestCacheManagementModal:
     """Test the unified cache management modal functionality."""
 
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def setup(self):
         """Set up test fixtures."""
         self.callback_called = False
 
@@ -29,15 +31,15 @@ class TestCacheManagementModal(unittest.TestCase):
 
         modal = CacheManagementModal(app_callback=test_callback)
 
-        self.assertEqual(modal.app_callback, test_callback)
-        self.assertEqual(modal.cache_status, "Ready")
-        self.assertEqual(len(modal.operation_log), 0)
+        assert modal.app_callback == test_callback
+        assert modal.cache_status == "Ready"
+        assert len(modal.operation_log) == 0
 
     def test_cache_modal_initialization_without_callback(self):
         """Test that cache modal initializes without app callback."""
         modal = CacheManagementModal()
 
-        self.assertIsNone(modal.app_callback)
+        assert modal.app_callback is None
 
     def test_button_press_close(self):
         """Test that close button dismisses the modal."""
@@ -70,8 +72,8 @@ class TestCacheManagementModal(unittest.TestCase):
 
         self.modal.add_log_message(test_message)
 
-        self.assertEqual(len(self.modal.operation_log), 1)
-        self.assertEqual(self.modal.operation_log[0], test_message)
+        assert len(self.modal.operation_log) == 1
+        assert self.modal.operation_log[0] == test_message
 
     def test_add_log_message_limit(self):
         """Test that log messages are limited to 20 entries."""
@@ -80,9 +82,9 @@ class TestCacheManagementModal(unittest.TestCase):
             self.modal.add_log_message(f"Message {i}")
 
         # Should only keep the last 20
-        self.assertEqual(len(self.modal.operation_log), 20)
-        self.assertEqual(self.modal.operation_log[0], "Message 5")
-        self.assertEqual(self.modal.operation_log[-1], "Message 24")
+        assert len(self.modal.operation_log) == 20
+        assert self.modal.operation_log[0] == "Message 5"
+        assert self.modal.operation_log[-1] == "Message 24"
 
     @patch("app.app.data_loader.DataLoader")
     def test_quick_refresh_success(self, mock_data_loader_class):
@@ -95,18 +97,18 @@ class TestCacheManagementModal(unittest.TestCase):
         self.modal.quick_refresh()
 
         # Check that callback was called
-        self.assertTrue(self.callback_called)
-        self.assertEqual(self.modal.cache_status, "Cache refreshed")
+        assert self.callback_called
+        assert self.modal.cache_status == "Cache refreshed"
 
         # Check log messages
-        self.assertIn(
-            "🔄 Quick refresh: reloading cache data...",
-            self.modal.operation_log,
+        assert (
+            "🔄 Quick refresh: reloading cache data..."
+            in self.modal.operation_log
         )
-        self.assertIn(
-            "✅ Cache data reloaded successfully!", self.modal.operation_log
+        assert (
+            "✅ Cache data reloaded successfully!" in self.modal.operation_log
         )
-        self.assertIn("📱 Main app data refreshed", self.modal.operation_log)
+        assert "📱 Main app data refreshed" in self.modal.operation_log
 
     @patch("app.app.data_loader.DataLoader")
     def test_quick_refresh_failure(self, mock_data_loader_class):
@@ -119,11 +121,11 @@ class TestCacheManagementModal(unittest.TestCase):
         self.modal.quick_refresh()
 
         # Check that callback was NOT called
-        self.assertFalse(self.callback_called)
-        self.assertEqual(self.modal.cache_status, "Refresh failed")
+        assert not self.callback_called
+        assert self.modal.cache_status == "Refresh failed"
 
         # Check log messages
-        self.assertIn("❌ Cache refresh failed!", self.modal.operation_log)
+        assert "❌ Cache refresh failed!" in self.modal.operation_log
 
     @patch("app.app.cache_management.update_cache")
     def test_regenerate_cache_success(self, mock_update_cache):
@@ -133,23 +135,20 @@ class TestCacheManagementModal(unittest.TestCase):
         self.modal.regenerate_cache()
 
         # Check that callback was called
-        self.assertTrue(self.callback_called)
-        self.assertEqual(self.modal.cache_status, "Cache is up to date")
+        assert self.callback_called
+        assert self.modal.cache_status == "Cache is up to date"
 
         # Check log messages
-        self.assertIn(
-            "🔄 Starting cache regeneration...", self.modal.operation_log
-        )
-        self.assertIn(
-            "✅ Cache regeneration successful!", self.modal.operation_log
-        )
-        self.assertIn("📱 Main app data refreshed", self.modal.operation_log)
+        assert "🔄 Starting cache regeneration..." in self.modal.operation_log
+        assert "✅ Cache regeneration successful!" in self.modal.operation_log
+        assert "📱 Main app data refreshed" in self.modal.operation_log
 
 
-class TestAwesomeListAppCacheIntegration(unittest.TestCase):
+class TestAwesomeListAppCacheIntegration:
     """Test cache management integration with the main app."""
 
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def setup(self):
         """Set up test fixtures."""
         self.app = AwesomeListApp()
 
@@ -157,24 +156,24 @@ class TestAwesomeListAppCacheIntegration(unittest.TestCase):
         """Test that 'r' key is bound to cache management."""
         # Check that 'r' key is in bindings
         binding_keys = [binding[0] for binding in self.app.BINDINGS]
-        self.assertIn("r", binding_keys)
+        assert "r" in binding_keys
 
         # Check that it maps to cache_management action
         cache_binding = next(
             (binding for binding in self.app.BINDINGS if binding[0] == "r"),
             None,
         )
-        self.assertIsNotNone(cache_binding)
+        assert cache_binding is not None
         if cache_binding is not None:  # Type guard for linter
-            self.assertEqual(cache_binding[1], "cache_management")
+            assert cache_binding[1] == "cache_management"
 
     def test_refresh_cache_action_removed(self):
         """Test that action_refresh_cache method has been removed."""
-        self.assertFalse(hasattr(self.app, "action_refresh_cache"))
+        assert not hasattr(self.app, "action_refresh_cache")
 
     def test_action_cache_management_exists(self):
         """Test that action_cache_management method exists."""
-        self.assertTrue(hasattr(self.app, "action_cache_management"))
+        assert hasattr(self.app, "action_cache_management")
 
     @patch("app.cli.CacheManagementModal")
     def test_action_cache_management_creates_modal_with_callback(
@@ -189,17 +188,17 @@ class TestAwesomeListAppCacheIntegration(unittest.TestCase):
                 self.app.action_cache_management()
 
                 # Check that modal was created with callback
-                self.assertTrue(mock_modal_class.called)
+                assert mock_modal_class.called
                 call_kwargs = mock_modal_class.call_args[1]
-                self.assertIn("app_callback", call_kwargs)
+                assert "app_callback" in call_kwargs
 
                 # Test the callback function
                 callback = call_kwargs["app_callback"]
                 callback()
-                self.assertTrue(mock_load_data.called)
+                assert mock_load_data.called
 
                 # Check that modal was pushed to screen
-                self.assertTrue(mock_push_screen.called)
+                assert mock_push_screen.called
 
     @patch("app.cli.CacheManagementModal", None)
     def test_action_cache_management_handles_missing_modal(self):
@@ -207,8 +206,4 @@ class TestAwesomeListAppCacheIntegration(unittest.TestCase):
         with patch.object(self.app, "notify") as mock_notify:
             self.app.action_cache_management()
 
-            self.assertTrue(mock_notify.called)
-
-
-if __name__ == "__main__":
-    unittest.main()
+            assert mock_notify.called
